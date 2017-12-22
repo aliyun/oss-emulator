@@ -60,7 +60,7 @@ UploadPartCopy,AbortMultipartUpload,ListMultipartUpload,ListParts
     sudo gem install thor builder
 ```
 
-- 下载 [oss-emulator](http://gitlab.alibaba-inc.com/oss/oss-emulator.git)
+- 下载 [oss-emulator](https://github.com/aliyun/oss-emulator)
 
 - 运行。进入 *oss-emulator* 目录, 执行命令 `ruby bin/emulator -r store -p 8080`。
 
@@ -71,7 +71,7 @@ UploadPartCopy,AbortMultipartUpload,ListMultipartUpload,ListParts
     gem install thor builder
 ```
 
-- 下载 [oss-emulator](http://gitlab.alibaba-inc.com/oss/oss-emulator.git)
+- 下载 [oss-emulator](https://github.com/aliyun/oss-emulator)
 
 - 运行。进入 *oss-emulator* 目录, 执行命令 `ruby bin/emulator -r store -p 8080`。
 
