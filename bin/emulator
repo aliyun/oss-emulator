@@ -1,0 +1,7 @@
+#!/usr/bin/env ruby
+
+$: << '../lib'
+$: << './lib'
+
+require 'emulator/cmdline'
+OssEmulator::CommandLine.start
