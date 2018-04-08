@@ -104,8 +104,6 @@ module OssEmulator
       src_object_dir = File.join(Config.store, src_bucket, src_object)
       src_metadata_filename = File.join(src_object_dir, Store::OBJECT_METADATA)
 
-      #temp_subdir = request.header['authorization'].first.split(':')[1].gsub(/[^a-zA-Z0-9]/, '')
-      #dst_object_dir = File.join(Config.store, dst_bucket, dst_object, temp_subdir)
       dst_object_dir = File.join(Config.store, dst_bucket, dst_object)
       dst_metadata_filename = File.join(dst_object_dir, Store::OBJECT_METADATA)
 
