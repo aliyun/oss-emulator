@@ -62,7 +62,7 @@ UploadPartCopy,AbortMultipartUpload,ListMultipartUpload,ListParts
 
 - 下载 [oss-emulator](https://github.com/aliyun/oss-emulator)
 
-- 运行。进入 *oss-emulator* 目录, 执行命令 `ruby bin/emulator -r store -p 8080`。
+- 运行。进入 *oss-emulator* 目录, 执行命令 `ruby bin/emulator -r store`。
 
 ### Windows
 
@@ -73,7 +73,7 @@ UploadPartCopy,AbortMultipartUpload,ListMultipartUpload,ListParts
 
 - 下载 [oss-emulator](https://github.com/aliyun/oss-emulator)
 
-- 运行。进入 *oss-emulator* 目录, 执行命令 `ruby bin/emulator -r store -p 8080`。
+- 运行。进入 *oss-emulator* 目录, 执行命令 `ruby bin/emulator -r store`。
 
 ## 使用示例
 
@@ -81,7 +81,7 @@ UploadPartCopy,AbortMultipartUpload,ListMultipartUpload,ListParts
 
 - 方法一：直接在命令行中携带参数, 其中endpoint设置为oss-emulator的IP; AccessKeyId和AccessKeySecret如下, 也可以不填。 如：
 ```
-    ossutil -e http://192.168.0.1:8080 -i  AccessKeyId -k AccessKeySecret ls oss://bucket
+    ossutil -e http://192.168.0.1 -i  AccessKeyId -k AccessKeySecret ls oss://bucket
 ```
 
 - 方法二：使用 `ossutil config` 命令配置参数，参数配置和 **方法一** 相同：
@@ -100,7 +100,7 @@ UploadPartCopy,AbortMultipartUpload,ListMultipartUpload,ListParts
     import oss2
 
     auth = oss2.Auth('AccessKeySecret', 'AccessKeySecret')
-    bucket = oss2.Bucket(auth, 'http//:192.168.0.1:8080', 'MyBucketName')
+    bucket = oss2.Bucket(auth, 'http://192.168.0.1', 'MyBucketName')
     bucket.create_bucket()
 ```
 

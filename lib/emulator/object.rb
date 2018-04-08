@@ -10,7 +10,7 @@ module OssEmulator
   module Object
 
     # PutObject
-    def self.put_object(bucket, object, request, response, part_number=nil)
+    def self.put_object(bucket, object, request, response, part_number=nil, uploadId=nil)
       # NoSuchBucket
       return if OssResponse.response_no_such_bucket(response, bucket)
 
@@ -44,13 +44,22 @@ module OssEmulator
       end
 
       obj_dir = File.join(Config.store, bucket, object)
+      temp_subdir = ""
+      temp_obj_dir = ""
+      Log.debug("request.header['authorization']=#{request.header['authorization']}")
       if part_number
-        object_content_filename = File.join(obj_dir, "#{Store::OBJECT_CONTENT_PREFIX}#{part_number}")
+        temp_subdir = uploadId
+        Log.debug("temp_subdir=#{temp_subdir}", 'green')
+        temp_obj_dir = File.join(obj_dir, temp_subdir)
+        object_content_filename = File.join(temp_obj_dir, "#{Store::OBJECT_CONTENT_PREFIX}#{part_number}")
       else
-        OssUtil.delete_object_file_and_dir(bucket, object)
-        object_content_filename = File.join(obj_dir, Store::OBJECT_CONTENT)
+        #OssUtil.delete_object_file_and_dir(bucket, object)
+        temp_subdir = request.header['authorization'].first.split(':')[1].gsub(/[^a-zA-Z0-9]/, '')
+        Log.debug("temp_subdir=#{temp_subdir}", 'green')
+        temp_obj_dir = File.join(obj_dir, temp_subdir)
+        object_content_filename = File.join(temp_obj_dir, Store::OBJECT_CONTENT)
       end
-      FileUtils.mkdir_p(obj_dir) unless File.exist?(obj_dir)
+      FileUtils.mkdir_p(temp_obj_dir) unless File.exist?(temp_obj_dir)
       f_object_content = File.new(object_content_filename, 'a')  
       f_object_content.binmode
 
@@ -83,7 +92,8 @@ module OssEmulator
 
       dataset = {}
       # put object metadata if not multipart upload
-      dataset = OssUtil.put_object_metadata(bucket, object, request) unless part_number
+      option = { temp_dir: temp_subdir }
+      dataset = OssUtil.put_object_metadata(bucket, object, request, option) unless part_number
 
       dataset[:cmd] = Request::PUT_OBJECT
       OssResponse.response_ok(response, dataset)
@@ -94,6 +104,8 @@ module OssEmulator
       src_object_dir = File.join(Config.store, src_bucket, src_object)
       src_metadata_filename = File.join(src_object_dir, Store::OBJECT_METADATA)
 
+      #temp_subdir = request.header['authorization'].first.split(':')[1].gsub(/[^a-zA-Z0-9]/, '')
+      #dst_object_dir = File.join(Config.store, dst_bucket, dst_object, temp_subdir)
       dst_object_dir = File.join(Config.store, dst_bucket, dst_object)
       dst_metadata_filename = File.join(dst_object_dir, Store::OBJECT_METADATA)
 

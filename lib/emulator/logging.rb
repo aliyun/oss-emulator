@@ -14,6 +14,7 @@ module OssEmulator
   #   Log.set_quiet_mode(false)
   #   Log.info("something", 'green')
   #   Log.fatal("something", 'red')
+  #   打印调试信息 ruby emulator -r ../store -q false -L debug
   class Log
 
     LOG_DEFAULT_DIR = "../log"

@@ -3,6 +3,7 @@ require 'find'
 require 'time'
 require 'fileutils'
 require 'builder'
+require "thread"
 require 'emulator/config'
 
 module OssEmulator
@@ -159,16 +160,20 @@ module OssEmulator
     end #get_bucket_list_objects
     
     def self.delete_object_file_and_dir(bucket, object)
+      Log.debug("delete_object_file_and_dir", 'yellow')
       bucket_dir = File.join(Config.store, bucket)
       object_dir = File.join(bucket_dir, object)
 
       object_metadata_filename = File.join(object_dir, Store::OBJECT_METADATA)
       FileUtils.rm_rf(object_metadata_filename) if File.exist?(object_metadata_filename)
+      object_content_filename = File.join(object_dir, Store::OBJECT_CONTENT_PREFIX)
+      FileUtils.rm_rf("#{object_content_filename}*") if File.exist?(object_content_filename)
 
       current_level_folder = object_dir
       while File.exist?(current_level_folder)
         return if current_level_folder==bucket_dir
         Find.find(current_level_folder) do |filename|
+          Log.debug("filename", 'blue')
           return if filename.include?(Store::OBJECT_METADATA)
         end
         
@@ -179,8 +184,18 @@ module OssEmulator
 
     def self.put_object_metadata(bucket, object, request, options = nil)
       obj_dir = File.join(Config.store, bucket, object)
-      content_filename = File.join(obj_dir, Store::OBJECT_CONTENT)
-      Log.raise("put_object_metadata : Object content file does not exist in put_object_metadata : #{obj_dir}") unless File.exist?(content_filename)
+
+      temp_obj_dir = obj_dir
+      temp_subdir = ''
+      if options!=nil && options.include?(:temp_dir)
+        temp_subdir = options[:temp_dir] if options.include?(:temp_dir)
+        temp_obj_dir = File.join(obj_dir, temp_subdir)
+        Log.debug("obj_dir=#{obj_dir}, options=#{options}, temp_subdir=#{temp_subdir}")
+      end
+
+      content_filename = File.join(temp_obj_dir, Store::OBJECT_CONTENT)
+
+      Log.raise("put_object_metadata : Object content file does not exist in put_object_metadata : #{temp_obj_dir}") unless File.exist?(content_filename)
 
       # construct metadata
       metadata = {}
@@ -220,9 +235,42 @@ module OssEmulator
       end
 
       # store metadata to file
-      metadata_file = File.join(obj_dir, Store::OBJECT_METADATA)
+      metadata_file = File.join(temp_obj_dir, Store::OBJECT_METADATA)
       File.open(metadata_file, 'w') do |f|
         f << YAML::dump(metadata)
+      end
+
+      # define the dynamic metux var 
+      if temp_subdir!=''
+        # bucket, object, str_var_metux = "@mutex_#{temp_subdir}"
+        bucket_var = bucket.gsub(/\W/, '_')
+        object_var = object.gsub(/\W/, '_')
+        str_var_metux = "@mutex_#{bucket_var}_#{object_var}"
+        instance_variable_set(str_var_metux, Mutex.new)
+        Log.debug(instance_variable_get(str_var_metux), 'blue')
+        # metux lock
+        instance_variable_get(str_var_metux).lock
+
+        # remove old object files
+        list_oldfiles = Dir.entries(obj_dir) 
+        list_oldfiles.each do |f|
+          if f.include?("_object_oss_aliyun_ALIBABA")
+            filepath = "#{obj_dir}/#{f}"
+            Log.debug(filepath, "yellow")
+            FileUtils.rm_rf(filepath)
+          end
+        end
+
+        # move object files from temp_dir to normal dir
+        Log.info("move temp_object to normal object. ")
+        list_move = Dir.entries(temp_obj_dir) 
+        list_move.each do |f| 
+          FileUtils.mv "#{temp_obj_dir}/#{f}",obj_dir if !File.directory?(f) 
+        end
+        FileUtils.rm_rf(temp_obj_dir) if File.exist?(temp_obj_dir)
+
+        # metux unlock
+        instance_variable_get(str_var_metux).unlock
       end
 
       metadata
