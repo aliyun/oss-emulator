@@ -16,9 +16,6 @@ module OssEmulator
       # NoSuchBucket
       return if OssResponse.response_no_such_bucket(response, bucket)
 
-      # delete object
-      #OssUtil.delete_object_file_and_dir(bucket, object)
-
       dataset = {
         cmd: Request::POST_INIT_MULTIPART_UPLOAD, 
         bucket: bucket, 
