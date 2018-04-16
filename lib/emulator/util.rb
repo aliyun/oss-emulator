@@ -246,14 +246,14 @@ module OssEmulator
         bucket_var = bucket.gsub(/\W/, '_')
         object_var = object.gsub(/\W/, '_')
         str_var_mutex = "@mutex_#{bucket_var}_#{object_var}"
-        instance_variable_set(str_var_mutex, Mutex.new)
-        Log.debug(instance_variable_get(str_var_mutex), 'blue')
+        mutex_set = instance_variable_set(str_var_mutex, Mutex.new)
+        thread_id = Thread.current
+        mutex_status = instance_variable_get(str_var_mutex).locked?
+        Log.debug("#{thread_id} :: Generate Mutex=#{mutex_set},status=#{mutex_status}; #{str_var_mutex}", 'blue')
 
-        begin
-          # mutex lock
-          instance_variable_get(str_var_mutex).lock
-          
+        instance_variable_get(str_var_mutex).synchronize{
           # remove old object files
+          Log.debug("#{thread_id} :: #{str_var_mutex} : enter synchronize block and remove old object. ", 'blue')
           list_oldfiles = Dir.entries(obj_dir) 
           list_oldfiles.each do |f|
             if f.include?("_object_oss_aliyun_ALIBABA")
@@ -264,17 +264,14 @@ module OssEmulator
           end
 
           # move object files from temp_dir to normal dir
-          Log.info("move temp_object to normal object. ")
+          Log.info("#{thread_id} :: #{str_var_mutex} : move temp_object to normal object. ", 'blue')
           list_move = Dir.entries(temp_obj_dir) 
           list_move.each do |f| 
             FileUtils.mv "#{temp_obj_dir}/#{f}",obj_dir if !File.directory?(f) 
           end
           FileUtils.rm_rf(temp_obj_dir) if File.exist?(temp_obj_dir)
-
-        ensure
-          # mutex unlock
-          instance_variable_get(str_var_mutex).unlock
-        end
+          Log.debug("#{thread_id} :: #{str_var_mutex} : quit synchronize block. ", 'blue')
+        }
       end
 
       metadata
