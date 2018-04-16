@@ -240,37 +240,41 @@ module OssEmulator
         f << YAML::dump(metadata)
       end
 
-      # define the dynamic metux var 
+      # define the dynamic mutex var 
       if temp_subdir!=''
-        # bucket, object, str_var_metux = "@mutex_#{temp_subdir}"
+        # bucket, object, str_var_mutex = "@mutex_#{temp_subdir}"
         bucket_var = bucket.gsub(/\W/, '_')
         object_var = object.gsub(/\W/, '_')
-        str_var_metux = "@mutex_#{bucket_var}_#{object_var}"
-        instance_variable_set(str_var_metux, Mutex.new)
-        Log.debug(instance_variable_get(str_var_metux), 'blue')
-        # metux lock
-        instance_variable_get(str_var_metux).lock
+        str_var_mutex = "@mutex_#{bucket_var}_#{object_var}"
+        instance_variable_set(str_var_mutex, Mutex.new)
+        Log.debug(instance_variable_get(str_var_mutex), 'blue')
 
-        # remove old object files
-        list_oldfiles = Dir.entries(obj_dir) 
-        list_oldfiles.each do |f|
-          if f.include?("_object_oss_aliyun_ALIBABA")
-            filepath = "#{obj_dir}/#{f}"
-            Log.debug(filepath, "yellow")
-            FileUtils.rm_rf(filepath)
+        begin
+          # mutex lock
+          instance_variable_get(str_var_mutex).lock
+          
+          # remove old object files
+          list_oldfiles = Dir.entries(obj_dir) 
+          list_oldfiles.each do |f|
+            if f.include?("_object_oss_aliyun_ALIBABA")
+              filepath = "#{obj_dir}/#{f}"
+              Log.debug(filepath, "yellow")
+              FileUtils.rm_rf(filepath)
+            end
           end
-        end
 
-        # move object files from temp_dir to normal dir
-        Log.info("move temp_object to normal object. ")
-        list_move = Dir.entries(temp_obj_dir) 
-        list_move.each do |f| 
-          FileUtils.mv "#{temp_obj_dir}/#{f}",obj_dir if !File.directory?(f) 
-        end
-        FileUtils.rm_rf(temp_obj_dir) if File.exist?(temp_obj_dir)
+          # move object files from temp_dir to normal dir
+          Log.info("move temp_object to normal object. ")
+          list_move = Dir.entries(temp_obj_dir) 
+          list_move.each do |f| 
+            FileUtils.mv "#{temp_obj_dir}/#{f}",obj_dir if !File.directory?(f) 
+          end
+          FileUtils.rm_rf(temp_obj_dir) if File.exist?(temp_obj_dir)
 
-        # metux unlock
-        instance_variable_get(str_var_metux).unlock
+        ensure
+          # mutex unlock
+          instance_variable_get(str_var_mutex).unlock
+        end
       end
 
       metadata
