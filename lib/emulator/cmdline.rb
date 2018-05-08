@@ -20,6 +20,10 @@ module OssEmulator
       Config.init()
       Config.set_quiet_mode(options[:quiet])
       Config.set_log_level(options[:loglevel].downcase) if options[:loglevel]
+
+      if RUBY_VERSION < '2.2.8' && RUBY_ENGINE == 'ruby'
+        abort("The Ruby version should be above 2.2.8 , current Ruby version is #{RUBY_VERSION} . ") 
+      end
       
       if options[:root]
         root_dir = File.expand_path(options[:root])

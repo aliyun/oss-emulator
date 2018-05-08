@@ -3,6 +3,7 @@ require 'securerandom'
 require "rexml/document"  
 require 'emulator/config'
 require 'emulator/util'
+require 'emulator/request'
 require 'emulator/response'
 include REXML
 include Comparable
@@ -14,9 +15,6 @@ module OssEmulator
     def self.initiate_multipart_upload(bucket, object, response)
       # NoSuchBucket
       return if OssResponse.response_no_such_bucket(response, bucket)
-
-      # delete object
-      OssUtil.delete_object_file_and_dir(bucket, object)
 
       dataset = {
         cmd: Request::POST_INIT_MULTIPART_UPLOAD, 
@@ -30,9 +28,10 @@ module OssEmulator
 
     # UploadPart
     def self.upload_part(req, query, request, response) 
-      part_number   = query['partNumber'].first
+      part_number = query['partNumber'].first
+      uploadId = query['uploadId'].first
 
-      Object.put_object(req.bucket, req.object, request, response, part_number)
+      Object.put_object(req.bucket, req.object, request, response, part_number, uploadId)
     end
 
     # CompleteMultipartUpload
@@ -48,14 +47,16 @@ module OssEmulator
       end
       
       object_dir = File.join(Config.store, req.bucket, req.object)
-      base_obj_part_filename = File.join(object_dir, Store::OBJECT_CONTENT_PREFIX)
+      temp_subdir = req.query_parser['uploadId'].first
+      temp_object_dir = File.join(object_dir, temp_subdir)
+      base_obj_part_filename = File.join(temp_object_dir, Store::OBJECT_CONTENT_PREFIX)
       complete_file_size = 0
       parts.each do |part|
         part_filename = "#{base_obj_part_filename}#{part[:number]}"
         complete_file_size += File.size(part_filename)
       end
 
-      options = { :size => complete_file_size, :part_size => File.size(File.join(object_dir, Store::OBJECT_CONTENT)) }
+      options = { :temp_dir => temp_subdir, :size => complete_file_size, :part_size => File.size(File.join(temp_object_dir, Store::OBJECT_CONTENT)) }
       dataset = OssUtil.put_object_metadata(req.bucket, req.object, request, options)
 
       dataset[:cmd] = Request::POST_COMPLETE_MULTIPART_UPLOAD

@@ -62,7 +62,7 @@ UploadPartCopy,AbortMultipartUpload,ListMultipartUpload,ListParts
 
 - 下载 [oss-emulator](https://github.com/aliyun/oss-emulator)
 
-- 运行。进入 *oss-emulator* 目录, 执行命令 `ruby bin/emulator -r store -p 8080`。
+- 运行。进入 *oss-emulator* 目录, 执行命令 `ruby bin/emulator -r store`, 默认监听端口为80; 如果要指定其他端口(比如8080), 则执行命令`ruby bin/emulator -r store -p 8080`。
 
 ### Windows
 
@@ -73,13 +73,17 @@ UploadPartCopy,AbortMultipartUpload,ListMultipartUpload,ListParts
 
 - 下载 [oss-emulator](https://github.com/aliyun/oss-emulator)
 
-- 运行。进入 *oss-emulator* 目录, 执行命令 `ruby bin/emulator -r store -p 8080`。
+- 运行。进入 *oss-emulator* 目录, 执行命令 `ruby bin/emulator -r store`, 默认监听端口为80; 如果要指定其他端口(比如8080), 则执行命令`ruby bin/emulator -r store -p 8080`。
 
 ## 使用示例
 
 ### ossutil
 
-- 方法一：直接在命令行中携带参数, 其中endpoint设置为oss-emulator的IP; AccessKeyId和AccessKeySecret如下, 也可以不填。 如：
+- 方法一：直接在命令行中携带参数, 其中endpoint设置为oss-emulator的IP; AccessKeyId和AccessKeySecret如下, 也可以不填; 默认连接到服务器端口80。 如：
+```
+    ossutil -e http://192.168.0.1 -i  AccessKeyId -k AccessKeySecret ls oss://bucket
+```
+  如果要指定连接到其他服务器端口(比如8080), 则按照如下命令来执行：
 ```
     ossutil -e http://192.168.0.1:8080 -i  AccessKeyId -k AccessKeySecret ls oss://bucket
 ```
@@ -94,8 +98,16 @@ UploadPartCopy,AbortMultipartUpload,ListMultipartUpload,ListParts
   
 ### Python SDK
 
-- *Python SDK* 连接 oss-emulator 代码的如下, 其中endpoint设置为 oss-emulator 的IP, AccessKeyId和AccessKeySecret如下, 也可以不填。
+- *Python SDK* 连接 oss-emulator 代码的如下, 其中endpoint设置为 oss-emulator 的IP, AccessKeyId和AccessKeySecret如下, 也可以不填; 默认连接到服务器端口80。
 
+```
+    import oss2
+
+    auth = oss2.Auth('AccessKeySecret', 'AccessKeySecret')
+    bucket = oss2.Bucket(auth, 'http://192.168.0.1', 'MyBucketName')
+    bucket.create_bucket()
+```
+- 如果要指定连接到其他服务器端口(比如8080), 则按照如下代码来编写：
 ```
     import oss2
 
