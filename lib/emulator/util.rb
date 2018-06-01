@@ -77,13 +77,14 @@ module OssEmulator
       end
 
       bucket_path = File.join(Config.store, req.bucket, '/')
-      find_root_folder = bucket_path 
+      find_root_folder = File.join(Config.store, req.bucket, prefix, '/')
       object_list = []
       common_prefix_list = []
       is_truncated = false
       count = 0
 
       Find.find(find_root_folder) do |filename|
+        Log.info(filename)
         if File.basename(filename)==Store::OBJECT_METADATA
           key_name = File.dirname(filename).gsub(bucket_path, "")
           if marker_found && (!prefix || key_name.index(prefix)==0 || key_name.index(prefix)==1)
@@ -131,6 +132,7 @@ module OssEmulator
           if marker && (cmp <= 0)
             marker_found = true
           end
+
         end # if 
       end # Find.find
 
