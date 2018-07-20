@@ -193,7 +193,7 @@ module OssEmulator
           )
         rescue
           webrick_config.merge!(
-            :Logger => WEBrick::Log.new(nil),
+            :Logger => WEBrick::Log.new(File.open(File::NULL, 'w')),
             :AccessLog => []
           )
         end

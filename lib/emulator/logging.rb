@@ -16,7 +16,7 @@ module OssEmulator
   #   Log.fatal("something", 'red')
   class Log
 
-    LOG_DEFAULT_DIR = "../log"
+    LOG_DEFAULT_DIR = "log"
     LOG_DEFAULT_FILE = "#{LOG_DEFAULT_DIR}/emulator.log"
     LOG_TEST_FILE = "#{LOG_DEFAULT_DIR}/test.log"
     LOG_ALIYUN_SDK_FILE = "#{LOG_DEFAULT_DIR}/aliyun_sdk.log"
