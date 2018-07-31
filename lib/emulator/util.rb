@@ -60,23 +60,21 @@ module OssEmulator
     def self.get_bucket_list_objects(lbr, req)
       marker = req.query["marker"] ? req.query["marker"].to_s : nil
       marker_found = (marker==nil || marker=="") ? true : false
-      prefix = req.query["prefix"] ? req.query["prefix"].to_s : nil
-      prefix = nil if prefix==""
+      prefix = req.query["prefix"] ? req.query["prefix"].to_s : ""
+
       max_keys = req.query["max-keys"] ? req.query["max-keys"].to_i : 100
       max_keys = max_keys>1000 ? 1000 : max_keys
       delimiter = req.query["delimiter"] ? req.query["delimiter"].to_s : nil
       delimiter = nil if delimiter==""
 
       if delimiter
-        if prefix
-          base_prefix = prefix
-        else
-          base_prefix = ""
-        end
+        base_prefix = prefix
         prefix_offset = base_prefix.length
       end
 
       bucket_path = File.join(Config.store, req.bucket, '/')
+
+
       find_root_folder = File.join(Config.store, req.bucket, prefix, '/')
       object_list = []
       common_prefix_list = []
